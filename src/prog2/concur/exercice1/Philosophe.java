@@ -1,80 +1,80 @@
 package prog2.concur.exercice1;
 
-class Fourchette
-{
-    private boolean prise = false;
+class Fourchette {
+	private boolean prise = false;
 
-    final synchronized void prendre() 
-    {
-        try 
-        {
-            while (prise) 
-            {
-                wait();
-            }
-        } 
-        catch(InterruptedException e) 
-        {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-        prise = true;
-    }
+	final synchronized void prendre() {
+		try {
+			while (prise) {
+				wait();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		prise = true;
+	}
 
-    final synchronized void relacher() 
-    {
-        prise = false;
-        notifyAll();
-    }
+	final synchronized void relacher() {
+		prise = false;
+		notifyAll();
+	}
+
+	public boolean estPrise() {
+		return prise;
+	}
 }
 
-public class Philosophe implements Runnable
-{
-    private String nom;
-    private Fourchette fGauche, fDroite;
+public class Philosophe implements Runnable {
+	private String nom;
+	private Fourchette fGauche, fDroite;
 
-    public Philosophe(String n, Fourchette g, Fourchette d)
-    {
-        nom = n;
-        fGauche = g;
-        fDroite = d;
-    }
+	public Philosophe(String n, Fourchette g, Fourchette d) {
+		nom = n;
+		fGauche = g;
+		fDroite = d;
+	}
 
-    public void run()
-    {
-        while(true)
-        {
-            penser();
-            fGauche.prendre();
-            fDroite.prendre();
-            manger();
-            fDroite.relacher();
-            fGauche.relacher();
-        }
-    }
+	public void run() {
+		while (true) {
+			penser();
+			if (!fGauche.estPrise() && !fDroite.estPrise()) {
+				fGauche.prendre();
+				fDroite.prendre();
 
-    final void manger() 
-    {
-        System.out.println(nom + " mange.");
-    }
+				manger();
+				fDroite.relacher();
+				fGauche.relacher();
+			}
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 
-    final void penser() 
-    {
-        System.out.println(nom + " pense.");
-    }
+	final void manger() {
+		System.out.println(nom + " mange.");
+	}
 
-    public static void main(String args[])
-    {
-        final String[] noms = {"Platon", "Socrate", "Aristote", "Diogène", "Sénèque"};
-        final Fourchette[] fourchettes = {new Fourchette(), new Fourchette(), new Fourchette(), new Fourchette(), new Fourchette()}; 
-        Philosophe[] table;
+	final void penser() {
+		System.out.println(nom + " pense.");
+	}
 
-        table = new Philosophe[5];
-        for(char cpt = 0; cpt < table.length; cpt ++)
-        {
-            table[cpt] = new Philosophe(noms[cpt], fourchettes[cpt], fourchettes[(cpt + 1) % table.length]);
-            new Thread(table[cpt]).start();
-        }
-    }
+	public static void main(String args[]) {
+		final String[] noms = { "Platon  ", "Socrate ", "Aristote", "Diogène ", "Sénèque " };
+		final Fourchette[] fourchettes = { new Fourchette(), new Fourchette(),
+				new Fourchette(), new Fourchette(), new Fourchette() };
+		Philosophe[] table;
+
+		table = new Philosophe[5];
+		for (char cpt = 0; cpt < table.length; cpt++) {
+			table[cpt] = new Philosophe(noms[cpt], fourchettes[cpt],
+					fourchettes[(cpt + 1) % table.length]);
+			new Thread(table[cpt]).start();
+		}
+	}
 }
-
