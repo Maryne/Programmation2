@@ -1,4 +1,3 @@
-package prog2.concur.exercice2;
 
 public class FIFOHautNiveau<T> extends AbstractFileBloquanteBornee<T> {
 	
