@@ -1,3 +1,5 @@
+package prog2.concur.exercice2;
+
 class producteur extends Thread {
 
 	private FIFOBasNiveau buffer;

@@ -1,3 +1,5 @@
+package prog2.concur.exercice2;
+
 public class FIFOBasNiveau<T> extends AbstractFileBloquanteBornee<T> {
 
 	public FIFOBasNiveau(int n) throws IllegalArgumentException {
