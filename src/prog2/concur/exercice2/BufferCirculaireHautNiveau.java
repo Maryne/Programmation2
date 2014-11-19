@@ -1,9 +1,9 @@
 package prog2.concur.exercice2;
 
 
-public class FIFOHautNiveau<T> extends AbstractFileBloquanteBornee<T> {
+public class BufferCirculaireHautNiveau<T> extends AbstractFileBloquanteBornee<T> {
 	
-	public FIFOHautNiveau(int n) throws IllegalArgumentException {
+	public BufferCirculaireHautNiveau(int n) throws IllegalArgumentException {
 		super(n);
 	}
 

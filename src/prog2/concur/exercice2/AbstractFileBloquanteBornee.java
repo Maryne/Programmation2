@@ -1,7 +1,5 @@
 package prog2.concur.exercice2;
 
-import java.util.ArrayList;
-
 /**
  * Une file de communication bornee bloquante.
  * 

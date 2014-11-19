@@ -1,8 +1,8 @@
 package prog2.concur.exercice2;
 
-public class FIFOBasNiveau<T> extends AbstractFileBloquanteBornee<T> {
+public class BufferCirculaireBasNiveau<T> extends AbstractFileBloquanteBornee<T> {
 
-	public FIFOBasNiveau(int n) throws IllegalArgumentException {
+	public BufferCirculaireBasNiveau(int n) throws IllegalArgumentException {
 		super(n);
 	}
 
@@ -13,7 +13,7 @@ public class FIFOBasNiveau<T> extends AbstractFileBloquanteBornee<T> {
 			try {
 				wait(); // attends non-plein
 			} catch (InterruptedException e) {
-
+				e.printStackTrace();
 			}
 		}
 		tableau[tete] = obj;
@@ -28,6 +28,7 @@ public class FIFOBasNiveau<T> extends AbstractFileBloquanteBornee<T> {
 			try {
 				wait(); // attends non-vide
 			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
 		T obj = tableau[queue];
