@@ -6,6 +6,12 @@ package prog2.concur.exercice2;
  * Les threads peuvent déposer (resp. prendre) des objets dans une telle file.
  * Cette opérations peut être bloquante si la file est pleine (resp. vide).
  */
+
+/**
+ * Classe AbstractFileBloquanteBornee
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
 public abstract class AbstractFileBloquanteBornee<E> {
 
 	E[] tableau;

@@ -46,6 +46,13 @@ import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 
+
+/**
+ * Classe ModernElementalHttpServer
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
+
 public class ModernElementalHttpServer {
 
 	public static void main(String[] args) throws Exception {
@@ -82,7 +89,7 @@ public class ModernElementalHttpServer {
         SSLServerSocketFactory sf = null;
         if (port == 8443) {
             // Initialize SSL context
-            ClassLoader cl = ElementalHttpServer.class.getClassLoader();
+            ClassLoader cl = ModernElementalHttpServer.class.getClassLoader();
             URL url = cl.getResource("my.keystore");
             if (url == null) {
                 System.out.println("Keystore not found");
@@ -107,17 +114,33 @@ public class ModernElementalHttpServer {
 	}
 
 	/**
+	 * Classe HttpFileHandler
+	 * 
+	 * @author Papillon Maxence & Maryne Teissier
+	 */
+	
+	/**
 	 * Aucune modification par rapport à l'original.
 	 */
 	static class HttpFileHandler implements HttpRequestHandler {
 
 		private final String docRoot;
 
+		/**
+	     * Constructeur
+	     * @param docroot docroot
+	     */
 		public HttpFileHandler(final String docRoot) {
 			super();
 			this.docRoot = docRoot;
 		}
 
+		/**
+	     * Méthode handle 
+	     * @param request requete http
+	     * @param response reponse http
+	     * @param context contexte http
+	     */
 		@Override
 		public void handle(HttpRequest request, HttpResponse response,
 				HttpContext context) throws HttpException, IOException {
@@ -174,12 +197,24 @@ public class ModernElementalHttpServer {
 	/**
 	 * La classe implémente Runnable au lieu de Thread.
 	 */
+	
+	/**
+	 * Classe RequestListenerTask
+	 * 
+	 * @author Papillon Maxence & Maryne Teissier
+	 */
 	static class RequestListenerTask implements Runnable {
 
 		private final HttpConnectionFactory<DefaultBHttpServerConnection> connFactory;
 		private final ServerSocket serversocket;
 		private final HttpService httpService;
 
+		/**
+	     * Constructeur
+	     * @param port port
+	     * @param httpService httpService
+	     * @param sf SSLServerSocketFactory
+	     */
 		public RequestListenerTask(
 				final int port,
 				final HttpService httpService, 
@@ -188,7 +223,12 @@ public class ModernElementalHttpServer {
 			this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
 			this.httpService = httpService;
 		}
+		
 
+		/**
+	     * Méthode run qui définit ce que le thread doit éxécuter
+	     * 
+	     */
 		@Override
 		public void run() {
 			System.out.println("Listening on port " + this.serversocket.getLocalPort());
@@ -230,11 +270,23 @@ public class ModernElementalHttpServer {
 	 * La classe implémente Runnable au lieu de Thread.
 	 * => Aucune modifications par rapport à l'original.
 	 */
+	
+	/**
+	 * Classe WorkerTask
+	 * 
+	 * @author Papillon Maxence & Maryne Teissier
+	 */
 	static class WorkerTask implements Runnable {
 
 		private final HttpService httpservice;
         private final HttpServerConnection conn;
 		
+        /**
+         * Constructeur
+         * @param Httpservice servicehttp
+         * @param conn connection htpp
+         * 
+         */
 		public WorkerTask(
                 final HttpService httpservice,
                 final HttpServerConnection conn) {
@@ -243,6 +295,10 @@ public class ModernElementalHttpServer {
             this.conn = conn;
         }
 		
+		/**
+	     * Méthode run qui définit ce que le thread doit éxécuter
+	     * 
+	     */
 		@Override
 		public void run() {
 			System.out.println("New connection task");

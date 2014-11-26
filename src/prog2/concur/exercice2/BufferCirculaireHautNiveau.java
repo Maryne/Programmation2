@@ -4,16 +4,29 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Classe BufferCirculaireHautNiveau
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
 public class BufferCirculaireHautNiveau<T> extends AbstractFileBloquanteBornee<T> {
 	
 	private final Lock lock = new ReentrantLock();
 	private final Condition nonPlein  = lock.newCondition(); 
 	private final Condition nonVide = lock.newCondition(); 
 	
+	/**
+	 * Constructeur
+	 * @param n nombre d'objets acceptés par la file
+	 */
 	public BufferCirculaireHautNiveau(int n) throws IllegalArgumentException {
 		super(n);
 	}
 
+	/**
+	 * Méthode déposer qui permet de prendre un objet dans la file. 
+	 * @param T objet à déposer
+	 */
 	@Override
 	public void deposer(T obj) throws InterruptedException {
 		this.lock.lock();
@@ -34,6 +47,10 @@ public class BufferCirculaireHautNiveau<T> extends AbstractFileBloquanteBornee<T
 		}
 	}
 
+	/**
+	 * Méthode déposer qui permet de prendre un objet dans la file. 
+	 * @param T objet à prendre
+	 */
 	@Override
 	public T prendre() throws InterruptedException {		
 		this.lock.lock();

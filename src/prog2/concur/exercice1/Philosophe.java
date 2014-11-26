@@ -1,5 +1,10 @@
 package prog2.concur.exercice1;
 
+/**
+ * Classe fourchette
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
 class Fourchette {
 	private boolean prise = false;
 
@@ -25,16 +30,34 @@ class Fourchette {
 	}
 }
 
+/**
+ * Classe Philosophe
+ * 
+ * @return un philosophe
+ * @author Papillon Maxence & Maryne Teissier
+ */
 public class Philosophe implements Runnable {
 	private String nom;
 	private Fourchette fGauche, fDroite;
 
+	/**
+     * Constructeur de la classe philosophe
+     * 
+     * @param n nom
+     * @param g fourchette gauche
+     * @param d fourchette droite
+     */
+	
 	public Philosophe(String n, Fourchette g, Fourchette d) {
 		nom = n;
 		fGauche = g;
 		fDroite = d;
 	}
 
+	/**
+     * Méthode run qui définit ce que le thread doit éxécuter
+     * 
+     */
 	public void run() {
 		while (true) {
 			penser();
@@ -56,10 +79,18 @@ public class Philosophe implements Runnable {
 		}
 	}
 
+	/**
+     * Méthode manger qui fait manger un philosophe
+     * 
+     */
 	final void manger() {
 		System.out.println(nom + " mange.");
 	}
-
+	
+	/**
+     * Méthode penser qui fait penser le philosophe
+     * 
+     */
 	final void penser() {
 		System.out.println(nom + " pense.");
 	}

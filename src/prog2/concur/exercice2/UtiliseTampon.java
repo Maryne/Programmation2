@@ -1,5 +1,10 @@
 package prog2.concur.exercice2;
 
+/**
+ * Classe Producteur
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
 class Producteur extends Thread {
 
 	private AbstractFileBloquanteBornee<Integer> buffer;
@@ -22,14 +27,27 @@ class Producteur extends Thread {
 	}
 }
 
+/**
+ * Classe Consommateur
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
 class Consommateur extends Thread {
 
 	private AbstractFileBloquanteBornee<Integer> buffer;
 
+	/**
+	 * Constructeur
+	 * @param buffer nom de la file
+	 */
 	public Consommateur(AbstractFileBloquanteBornee<Integer> buffer) {
 		this.buffer = buffer;
 	}
 
+	/**
+     * Méthode run qui définit ce que le thread doit éxécuter
+     * 
+     */
 	public void run() {
 		while (true) {
 			try {
@@ -42,6 +60,11 @@ class Consommateur extends Thread {
 	}
 }
 
+/**
+ * Classe UtiliseTampon
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
 class UtiliseTampon {
 
 	public static void main(String args[]) {
