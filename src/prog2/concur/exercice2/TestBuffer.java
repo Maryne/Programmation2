@@ -61,16 +61,34 @@ class Consommateur extends Thread {
 }
 
 /**
- * Classe UtiliseTampon
+ * Classe TestBufferBasNiveau
  * 
  * @author Papillon Maxence & Maryne Teissier
  */
-class UtiliseTampon {
+class TestBufferBasNiveau {
 
 	public static void main(String args[]) {
 
-		//BufferCirculaireBasNiveau<Integer> buffer = new BufferCirculaireBasNiveau<>(5);
-		BufferCirculaireHautNiveau<Integer> buffer = new BufferCirculaireHautNiveau<>(5);
+		AbstractFileBloquanteBornee<Integer> buffer = new BufferCirculaireBasNiveau<>(5);
+		Producteur prod = new Producteur(buffer);
+		Consommateur cons = new Consommateur(buffer);
+
+		prod.start();
+		cons.start();
+	}
+
+}
+
+/**
+ * Classe TestBufferHautNiveau
+ * 
+ * @author Papillon Maxence & Maryne Teissier
+ */
+class TestBufferHautNiveau {
+
+	public static void main(String args[]) {
+
+		AbstractFileBloquanteBornee<Integer> buffer = new BufferCirculaireHautNiveau<>(5);
 		Producteur prod = new Producteur(buffer);
 		Consommateur cons = new Consommateur(buffer);
 

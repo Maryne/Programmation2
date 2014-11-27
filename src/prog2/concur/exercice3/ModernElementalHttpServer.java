@@ -46,32 +46,42 @@ import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 
-
 /**
  * Classe ModernElementalHttpServer
  * 
  * @author Papillon Maxence & Maryne Teissier
  */
-
 public class ModernElementalHttpServer {
 
 	public static void main(String[] args) throws Exception {
-		// Si aucun arguments ne sont passés à l'application,
-		// elle s'arrête.
-		if (args.length < 1) {
-			System.err.println("Please specify document root directory");
-			System.exit(1);
+		ModernElementalHttpServer srv = new ModernElementalHttpServer();
+		srv.start();
+	}
+
+	private String _docRoot;
+	private int _port;
+	private int _maxConnections;
+
+	public final String CONFIG_FILE_PATH = "resources/http_server.ini";
+
+	public ModernElementalHttpServer() {
+		readConfig();
+	}
+
+	private void readConfig() {
+		try {
+			SimpleIniReader sir = new SimpleIniReader(CONFIG_FILE_PATH);
+
+			_docRoot = sir.get("wwwroot");
+			_port = Integer.parseInt(sir.get("port"));
+			_maxConnections = Integer.parseInt(sir
+					.get("max_simultaneous_connections"));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
 
-		// Répertoire racine du serveur
-		String docRoot = args[0];
-		int port = 8080;
-
-		// Si un port est spécifié, il est récupéré
-		if (args.length >= 2) {
-			port = Integer.parseInt(args[1]);
-		}
-
+	private void start() throws Exception {
 		// Création la réponse HTTP
 		HttpProcessor httpproc = HttpProcessorBuilder.create()
 				.add(new ResponseDate())
@@ -81,66 +91,68 @@ public class ModernElementalHttpServer {
 
 		// Définition du gestionnaire de requêtes
 		UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
-		reqistry.register("*", new HttpFileHandler(docRoot));
-		
-		// Définition du service HTTP
-        HttpService httpService = new HttpService(httpproc, reqistry);
+		reqistry.register("*", new HttpFileHandler(_docRoot));
 
-        SSLServerSocketFactory sf = null;
-        if (port == 8443) {
-            // Initialize SSL context
-            ClassLoader cl = ModernElementalHttpServer.class.getClassLoader();
-            URL url = cl.getResource("my.keystore");
-            if (url == null) {
-                System.out.println("Keystore not found");
-                System.exit(1);
-            }
-            KeyStore keystore  = KeyStore.getInstance("jks");
-            keystore.load(url.openStream(), "secret".toCharArray());
-            KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
-                    KeyManagerFactory.getDefaultAlgorithm());
-            kmfactory.init(keystore, "secret".toCharArray());
-            KeyManager[] keymanagers = kmfactory.getKeyManagers();
-            SSLContext sslcontext = SSLContext.getInstance("TLS");
-            sslcontext.init(keymanagers, null, null);
-            sf = sslcontext.getServerSocketFactory();
-        }
-        
-        /* * * * * * * * * * * * * * * * * * * *
-         * Mise en place de l'executor service
-         * * * * * * * * * * * * * * * * * * * */
-        ExecutorService singleThread = Executors.newSingleThreadExecutor();
-        singleThread.execute(new RequestListenerTask(port, httpService, sf));
+		// Définition du service HTTP
+		HttpService httpService = new HttpService(httpproc, reqistry);
+
+		SSLServerSocketFactory sf = null;
+		if (_port == 8443) {
+			// Initialize SSL context
+			ClassLoader cl = ModernElementalHttpServer.class.getClassLoader();
+			URL url = cl.getResource("my.keystore");
+			if (url == null) {
+				System.out.println("Keystore not found");
+				System.exit(1);
+			}
+			KeyStore keystore = KeyStore.getInstance("jks");
+			keystore.load(url.openStream(), "secret".toCharArray());
+			KeyManagerFactory kmfactory = KeyManagerFactory
+					.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			kmfactory.init(keystore, "secret".toCharArray());
+			KeyManager[] keymanagers = kmfactory.getKeyManagers();
+			SSLContext sslcontext = SSLContext.getInstance("TLS");
+			sslcontext.init(keymanagers, null, null);
+			sf = sslcontext.getServerSocketFactory();
+		}
+
+		/**
+		 * Mise en place de l'executor service
+		 **/
+		ExecutorService singleThread = Executors.newSingleThreadExecutor();
+		singleThread.execute(new RequestListenerTask(_port, httpService, sf, _maxConnections));
 	}
 
 	/**
-	 * Classe HttpFileHandler
+	 * Classe HttpFileHandler Aucune modification par rapport à l'original.
 	 * 
 	 * @author Papillon Maxence & Maryne Teissier
-	 */
-	
-	/**
-	 * Aucune modification par rapport à l'original.
 	 */
 	static class HttpFileHandler implements HttpRequestHandler {
 
 		private final String docRoot;
 
 		/**
-	     * Constructeur
-	     * @param docroot docroot
-	     */
+		 * Constructeur
+		 * 
+		 * @param docroot
+		 *            docroot
+		 */
 		public HttpFileHandler(final String docRoot) {
 			super();
 			this.docRoot = docRoot;
 		}
 
 		/**
-	     * Méthode handle 
-	     * @param request requete http
-	     * @param response reponse http
-	     * @param context contexte http
-	     */
+		 * Méthode handle
+		 * 
+		 * @param request
+		 *            requete http
+		 * @param response
+		 *            reponse http
+		 * @param context
+		 *            contexte http
+		 */
 		@Override
 		public void handle(HttpRequest request, HttpResponse response,
 				HttpContext context) throws HttpException, IOException {
@@ -195,11 +207,8 @@ public class ModernElementalHttpServer {
 	}
 
 	/**
-	 * La classe implémente Runnable au lieu de Thread.
-	 */
-	
-	/**
-	 * Classe RequestListenerTask
+	 * Classe RequestListenerTask La classe implémente Runnable au lieu de
+	 * Thread.
 	 * 
 	 * @author Papillon Maxence & Maryne Teissier
 	 */
@@ -208,117 +217,122 @@ public class ModernElementalHttpServer {
 		private final HttpConnectionFactory<DefaultBHttpServerConnection> connFactory;
 		private final ServerSocket serversocket;
 		private final HttpService httpService;
+		private int _maxConnections;
 
 		/**
-	     * Constructeur
-	     * @param port port
-	     * @param httpService httpService
-	     * @param sf SSLServerSocketFactory
-	     */
-		public RequestListenerTask(
-				final int port,
-				final HttpService httpService, 
-				final SSLServerSocketFactory sf) throws IOException {
+		 * Constructeur
+		 * 
+		 * @param port
+		 *            port
+		 * @param httpService
+		 *            httpService
+		 * @param sf
+		 *            SSLServerSocketFactory
+		 */
+		public RequestListenerTask(final int port,
+				final HttpService httpService, final SSLServerSocketFactory sf,
+				int maxConnections) throws IOException {
 			this.connFactory = DefaultBHttpServerConnectionFactory.INSTANCE;
-			this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
+			this.serversocket = sf != null ? sf.createServerSocket(port)
+					: new ServerSocket(port);
 			this.httpService = httpService;
+			this._maxConnections = maxConnections;
 		}
-		
 
 		/**
-	     * Méthode run qui définit ce que le thread doit éxécuter
-	     * 
-	     */
+		 * Méthode run qui définit ce que le thread doit éxécuter
+		 **/
 		@Override
 		public void run() {
-			System.out.println("Listening on port " + this.serversocket.getLocalPort());
-			
-			/* * * * * * * * * * * * * * * * * * * *
-	         * Mise en place de l'executor service
-	         * * * * * * * * * * * * * * * * * * * */
-			ExecutorService threadExecutor = Executors.newCachedThreadPool();
-			
-            while (!Thread.interrupted()) {
-                try {
-                    // Set up HTTP connection
-                    Socket socket = this.serversocket.accept();
-                    System.out.println("Incoming connection from " + socket.getInetAddress());
-                    HttpServerConnection conn = this.connFactory.createConnection(socket);
+			System.out.println("Listening on port "
+					+ this.serversocket.getLocalPort());
 
-                    /* * * * * * * * * * * * * * * * * * * *
-        	         * Ajout d'une nouvelle tâche
-        	         * * * * * * * * * * * * * * * * * * * */
-                    threadExecutor.execute(new WorkerTask(this.httpService, conn));
-                } catch (InterruptedIOException ex) {
-                    break;
-                } catch (IOException e) {
-                    System.err.println("I/O error initialising connection thread: "
-                            + e.getMessage());
-                    break;
-                }
-            }
-            
-            /* * * * * * * * * * * * * * * * * * * *
-	         * Arrêt de toutes les tâches
-	         * * * * * * * * * * * * * * * * * * * */
-            threadExecutor.shutdown();
+			/**
+			 * Mise en place de l'executor service
+			 **/
+			ExecutorService threadExecutor = Executors
+					.newFixedThreadPool(_maxConnections);
+
+			while (!Thread.interrupted()) {
+				try {
+					// Set up HTTP connection
+					Socket socket = this.serversocket.accept();
+					System.out.println("Incoming connection from "
+							+ socket.getInetAddress());
+					HttpServerConnection conn = this.connFactory
+							.createConnection(socket);
+
+					/* * * * * * * * * * * * * * * * * * * *
+					 * Ajout d'une nouvelle tâche * * * * * * * * * * * * * * *
+					 * * * *
+					 */
+					threadExecutor.execute(new WorkerTask(this.httpService,
+							conn));
+				} catch (InterruptedIOException ex) {
+					break;
+				} catch (IOException e) {
+					System.err
+							.println("I/O error initialising connection thread: "
+									+ e.getMessage());
+					break;
+				}
+			}
 		}
-
 	}
 
 	/**
-	 * La classe implémente Runnable au lieu de Thread.
-	 * => Aucune modifications par rapport à l'original.
-	 */
-	
-	/**
-	 * Classe WorkerTask
+	 * Classe WorkerTask La classe implémente Runnable au lieu de Thread. =>
+	 * Aucune modifications par rapport à l'original.
 	 * 
 	 * @author Papillon Maxence & Maryne Teissier
 	 */
 	static class WorkerTask implements Runnable {
 
 		private final HttpService httpservice;
-        private final HttpServerConnection conn;
-		
-        /**
-         * Constructeur
-         * @param Httpservice servicehttp
-         * @param conn connection htpp
-         * 
-         */
-		public WorkerTask(
-                final HttpService httpservice,
-                final HttpServerConnection conn) {
-            super();
-            this.httpservice = httpservice;
-            this.conn = conn;
-        }
-		
+		private final HttpServerConnection conn;
+
 		/**
-	     * Méthode run qui définit ce que le thread doit éxécuter
-	     * 
-	     */
+		 * Constructeur
+		 * 
+		 * @param Httpservice
+		 *            servicehttp
+		 * @param conn
+		 *            connection htpp
+		 * 
+		 */
+		public WorkerTask(final HttpService httpservice,
+				final HttpServerConnection conn) {
+			super();
+			this.httpservice = httpservice;
+			this.conn = conn;
+		}
+
+		/**
+		 * Méthode run qui définit ce que le thread doit éxécuter
+		 * 
+		 */
 		@Override
 		public void run() {
 			System.out.println("New connection task");
-            HttpContext context = new BasicHttpContext(null);
-            try {
-                while (!Thread.interrupted() && this.conn.isOpen()) {
-                    this.httpservice.handleRequest(this.conn, context);
-                }
-            } catch (ConnectionClosedException ex) {
-                System.err.println("Client closed connection");
-            } catch (IOException ex) {
-                System.err.println("I/O error: " + ex.getMessage());
-            } catch (HttpException ex) {
-                System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
-            } finally {
-                try {
-                    this.conn.shutdown();
-                } catch (IOException ignore) {}
-            }
+			HttpContext context = new BasicHttpContext(null);
+			try {
+				while (!Thread.interrupted() && this.conn.isOpen()) {
+					this.httpservice.handleRequest(this.conn, context);
+				}
+			} catch (ConnectionClosedException ex) {
+				System.err.println("Client closed connection");
+			} catch (IOException ex) {
+				System.err.println("I/O error: " + ex.getMessage());
+			} catch (HttpException ex) {
+				System.err.println("Unrecoverable HTTP protocol violation: "
+						+ ex.getMessage());
+			} finally {
+				try {
+					this.conn.shutdown();
+				} catch (IOException ignore) {
+				}
+			}
 		}
-		
+
 	}
 }
