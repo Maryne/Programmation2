@@ -64,10 +64,16 @@ public class ModernElementalHttpServer {
 
 	public final String CONFIG_FILE_PATH = "resources/http_server.ini";
 
+	/**
+	 * Instancie un nouveau serveur.
+	 */
 	public ModernElementalHttpServer() {
 		readConfig();
 	}
 
+	/**
+	 * Lit le fichier de configuration et initialise les attributs.
+	 */
 	private void readConfig() {
 		try {
 			SimpleIniReader sir = new SimpleIniReader(CONFIG_FILE_PATH);
@@ -81,6 +87,11 @@ public class ModernElementalHttpServer {
 		}
 	}
 
+	/**
+	 * Démarre l'écoute des requêtes.
+	 * 
+	 * @throws Exception
+	 */
 	private void start() throws Exception {
 		// Création la réponse HTTP
 		HttpProcessor httpproc = HttpProcessorBuilder.create()
@@ -262,10 +273,9 @@ public class ModernElementalHttpServer {
 					HttpServerConnection conn = this.connFactory
 							.createConnection(socket);
 
-					/* * * * * * * * * * * * * * * * * * * *
-					 * Ajout d'une nouvelle tâche * * * * * * * * * * * * * * *
-					 * * * *
-					 */
+					/**
+					 * Ajout d'une nouvelle tâche
+					 **/
 					threadExecutor.execute(new WorkerTask(this.httpService,
 							conn));
 				} catch (InterruptedIOException ex) {
@@ -309,7 +319,6 @@ public class ModernElementalHttpServer {
 
 		/**
 		 * Méthode run qui définit ce que le thread doit éxécuter
-		 * 
 		 */
 		@Override
 		public void run() {
